@@ -5,153 +5,153 @@ import itertools
 MAX_KEYSIZE = 40
 
 
-def encryptRepeatingXOR(plainText, key):
+def encrypt_repeating_xor(plain_text, key):
     keylength = len(key)
-    cipherText = [0] * len(plainText)
-    keyPos = 0
-    textPos = 0
+    cipher_text = [0] * len(plain_text)
+    key_pos = 0
+    text_pos = 0
 
-    for b in plainText:
-        cipherText[textPos] = ord(plainText[textPos]) ^ ord(key[keyPos])
-        textPos += 1
-        keyPos += 1
-        if keyPos >= keylength:
-            keyPos = 0
-    return cipherText
+    for b in plain_text:
+        cipher_text[text_pos] = ord(plain_text[text_pos]) ^ ord(key[key_pos])
+        text_pos += 1
+        key_pos += 1
+        if key_pos >= keylength:
+            key_pos = 0
+    return cipher_text
 
 
-def alphaRangeScoreText(text):
+def alpha_range_score_text(text):
     score = 0
-    textLength = len(text)
+    text_length = len(text)
 
-    if textLength == 0:
+    if text_length == 0:
         print 'textlength is zero'
         return 0
     
     for b in text:
         if ((b >= 48) and (b <= 57)) or ((b >= 65) and (b <= 90)) or ((b >= 97) and (b <= 122)) or (b == 32):
             score += 1
-    return float(score) / float(textLength)
+    return float(score) / float(text_length)
 
 
-def decryptXORString(inputString, key):
-    result = [0] * len(inputString)
+def decrypt_xorstring(input_string, key):
+    result = [0] * len(input_string)
     i = 0
     for b in result:
-        result[i] = ord(inputString[i]) ^ key
+        result[i] = ord(input_string[i]) ^ key
         i += 1
     return result
 
 
-def calculateHammingDist(stringOne, stringTwo):
-    'Hamming distance is the difference in bits of the two strings'
+def calculate_hamming_distance(string_one, string_two):
+    'hamming distance is the difference in bits of the two strings'
 
-    hammingDist = 0
-    strOne = map(ord, stringOne)
-    strTwo = map(ord, stringTwo)
-    # Ensure strings have the same length
-    if(len(stringOne) != len(stringTwo)):
+    hamming_dist = 0
+    str_one = map(ord, string_one)
+    str_two = map(ord, string_two)
+    # ensure strings have the same length
+    if(len(string_one) != len(string_two)):
             return -1
 
-    # Iterate through bytes, fine differing bits via XOR,
+    # iterate through bytes, fine differing bits via xor,
     # and increment hamming distance for each one.
-    for i in range(len(strOne)):
-        b = strOne[i] ^ strTwo[i]
+    for i in range(len(str_one)):
+        b = str_one[i] ^ str_two[i]
         for j in range(8):
             if b & 0x01:
-                hammingDist += 1
+                hamming_dist += 1
             b = b >> 1
 
-    return hammingDist
+    return hamming_dist
 
 
-def testKeysize(keySize, text):
+def test_keysize(key_size, text):
     strings = ['', '', '', '']
     
-    for i in range(keySize):
+    for i in range(key_size):
         strings[0] = strings[0] + text[i]
-        strings[1] = strings[1] + text[i + keySize]
-        strings[2] = strings[2] + text[i + (keySize * 2)]
-        strings[3] = strings[3] + text[i + (keySize * 3)]
+        strings[1] = strings[1] + text[i + key_size]
+        strings[2] = strings[2] + text[i + (key_size * 2)]
+        strings[3] = strings[3] + text[i + (key_size * 3)]
 
     pairs = itertools.combinations(strings, 2)
-    hamming_distance = sum([calculateHammingDist(a, b) for (a, b) in pairs])
+    hamming_distance = sum([calculate_hamming_distance(a, b) for (a, b) in pairs])
 
-    return hamming_distance * 1.0 / keySize
+    return hamming_distance * 1.0 / key_size
 
 
-def determineBlockKey(block):
-    maxScore = maxScoreKey = 0
+def determine_block_key(block):
+    max_score = max_score_key = 0
     
     for k in range(0, 256):
-        text = decryptXORString(block, k)
-        score = alphaRangeScoreText(text)
-        if(maxScore < score):
-            maxScore = score
-            maxScoreKey = k
+        text = decrypt_xorstring(block, k)
+        score = alpha_range_score_text(text)
+        if(max_score < score):
+            max_score = score
+            max_score_key = k
 
-    return maxScoreKey
+    return max_score_key
 
 
-def convertArrayToAscii(data):
+def convert_array_to_ascii(data):
     return ''.join(chr(i) for i in data)
 
 
 
 
-# Load Encrypted File
-print 'Reading input file data.'
-with open('XOR-encrypted-file.txt', 'r') as f:
+# load encrypted file
+print 'reading input file data.'
+with open('xor-encrypted-file.txt', 'r') as f:
     ciphertext = f.read()
 
     
-# Decode Base 64
-print 'Base64 decoding ciphertext.'
+# decode base 64
+print 'base64 decoding ciphertext.'
 ciphertext = base64.b64decode(ciphertext)
                               
 
-# Determine probable keysize via average hamming
-print 'Calculating probable keysize...'
-minHamm = MAX_KEYSIZE * 8
-keySize = 0
+# determine probable keysize via average hamming
+print 'calculating probable keysize...'
+min_hamm = MAX_KEYSIZE * 8
+key_size = 0
 
 for k in range(1, MAX_KEYSIZE):
-    avgHamm = testKeysize(k, ciphertext)
-    if(avgHamm < minHamm):
-        minHamm = avgHamm
-        keySize = k
-print '\tLikely Keysize: ' + str(keySize)
+    avg_hamm = test_keysize(k, ciphertext)
+    if(avg_hamm < min_hamm):
+        min_hamm = avg_hamm
+        key_size = k
+print '\t_likely keysize: ' + str(key_size)
 
 
-# Create text blocks via key size
-print 'Determining Key'
-print '\tSplitting ciphertext into blocks'
+# create text blocks via key size
+print 'determining key'
+print '\t_splitting ciphertext into blocks'
 j = 0
-cipher_text_block = [''] * keySize
+cipher_text_block = [''] * key_size
 for k in ciphertext:
     cipher_text_block[j] = cipher_text_block[j] + k
     j += 1
-    if j >= keySize:
+    if j >= key_size:
         j = 0
 
         
-# Apply histograms to each to find most probably key characters
-print '\tCalculating likely key for block'
-block_key_value = [''] * keySize
+# apply histograms to each to find most probably key characters
+print '\t_calculating likely key for block'
+block_key_value = [''] * key_size
 
 for b in range(len(cipher_text_block)):
-    block_key_value[b] = determineBlockKey(cipher_text_block[b])
+    block_key_value[b] = determine_block_key(cipher_text_block[b])
 
-key = convertArrayToAscii(block_key_value)
-print '\tLikely key determined to be: \'' + key + '\''
+key = convert_array_to_ascii(block_key_value)
+print '\t_likely key determined to be: \'' + key + '\''
 
-# Decrypt
-plaintext = encryptRepeatingXOR(ciphertext, key)
+# decrypt
+plaintext = encrypt_repeating_xor(ciphertext, key)
 
 print '\n\n\n'
-print '***** BEGIN DECRYPTED TEXT *****'
+print '***** begin decrypted text *****'
 print '\n'
-print convertArrayToAscii(plaintext)
+print convert_array_to_ascii(plaintext)
 print '\n'
-print '***** END DECRYPTED TEXT *****'
+print '***** end decrypted text *****'
 print '\n'
